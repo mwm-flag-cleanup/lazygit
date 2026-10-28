@@ -30,4 +30,4 @@ jobs:
         uses: docker://golang:1.26-alpine
         shell: sh
         run: |
-          go test ./... -short
+          apk add --no-cache git && go test ./... -short
