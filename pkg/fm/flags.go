@@ -37,7 +37,9 @@ type uxFlags struct {
 	// DiffContextLines overrides the number of unified-diff context lines
 	// shown around each change, as a fallback/override on top of the user's
 	// own `git.diffContextSize` config. Fully qualified name:
-	// "ux.DiffContextLines".
+	// "ux.DiffContextLines". A default of 0 means "no override configured";
+	// it is a sentinel, not a selectable variant, so it's deliberately not
+	// included in the options below.
 	DiffContextLines server.RoxInt
 }
 
@@ -47,7 +49,7 @@ var Flags = &flags{
 
 var UxFlags = &uxFlags{
 	CommitGraphStyle: server.NewRoxString("ascii", []string{"ascii", "unicode"}),
-	DiffContextLines: server.NewRoxInt(3, []int{1, 3, 5, 10}),
+	DiffContextLines: server.NewRoxInt(0, []int{1, 3, 5, 10}),
 }
 
 var rox = server.NewRox()

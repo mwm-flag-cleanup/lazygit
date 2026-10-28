@@ -89,10 +89,12 @@ func (self *RefreshHelper) RefreshBlockingInput(options types.RefreshOptions) {
 // goroutine (e.g. inside a WithWaitingStatus handler) rather than the UI
 // thread. See IGuiCommon.RefreshFromWorker.
 func (self *RefreshHelper) RefreshFromWorker(options types.RefreshOptions) {
-	if options.Background && fm.DynamicAPI().IsEnabled("watchman-integration-enabled", false, nil) {
+	if options.Background && len(options.Scope) > 0 && fm.DynamicAPI().IsEnabled("watchman-integration-enabled", false, nil) {
 		// Event-driven watchers can report several distinct refreshable views
 		// changing at once, so widen the scope rather than requiring a
-		// follow-up pass to catch the rest.
+		// follow-up pass to catch the rest. Only applies when the caller
+		// already asked for a specific (non-empty) scope — an empty Scope
+		// means "refresh everything" and must stay untouched.
 		options.Scope = append(options.Scope, types.FILES, types.BRANCHES)
 	}
 	self.performRefresh(options, true, false)

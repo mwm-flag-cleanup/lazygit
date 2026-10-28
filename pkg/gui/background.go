@@ -225,18 +225,15 @@ func (self *BackgroundRoutineMgr) checkForExternalChanges() {
 	// No need to update the stored snapshot here; Refresh does that.
 	self.gui.c.Log.Info("External ref change detected — refreshing")
 
+	// Log which detection strategy is active; either way we still do a full
+	// (all-views) background refresh below.
 	fm.Flags.EnableWatchmanIntegration.Enabled(nil, func() {
-		// An instant notifier can tell us several kinds of refs changed at
-		// once, so widen the refresh scope rather than relying on the next
-		// poll tick to pick up the rest.
-		self.gui.c.RefreshFromWorker(types.RefreshOptions{
-			Background: true,
-			Scope:      []types.RefreshableView{types.FILES, types.BRANCHES, types.COMMITS},
-		})
+		self.gui.c.Log.Info("Watchman-style instant notifier active")
 	})
 	fm.Flags.EnableWatchmanIntegration.Disabled(nil, func() {
-		self.gui.c.RefreshFromWorker(types.RefreshOptions{Background: true})
+		self.gui.c.Log.Info("Interval-based polling active")
 	})
+	self.gui.c.RefreshFromWorker(types.RefreshOptions{Background: true})
 }
 
 // Runs function every interval until stop is closed. A send on retrigger (if
