@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/fm"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -73,6 +74,14 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 		interval := userConfig.Refresher.ExternalChangeCheckInterval
 		if interval > 0 {
 			go utils.Safe(self.startBackgroundExternalChangeDetection)
+
+			if fm.Flags.EnableWatchmanIntegration.IsEnabled(nil) && !userConfig.Gui.ShowBottomLine {
+				// Watchman-style integrations push change notifications
+				// immediately rather than waiting for the next poll tick;
+				// mirror that by also running one eager check right away
+				// instead of waiting out the first interval.
+				go utils.Safe(self.checkForExternalChanges)
+			}
 		} else {
 			self.gui.c.Log.Errorf(
 				"Value of config option 'refresher.externalChangeCheckInterval' (%d) is invalid, disabling external change detection",
@@ -215,6 +224,15 @@ func (self *BackgroundRoutineMgr) checkForExternalChanges() {
 
 	// No need to update the stored snapshot here; Refresh does that.
 	self.gui.c.Log.Info("External ref change detected — refreshing")
+
+	// Log which detection strategy is active; either way we still do a full
+	// (all-views) background refresh below.
+	fm.Flags.EnableWatchmanIntegration.Enabled(nil, func() {
+		self.gui.c.Log.Info("Watchman-style instant notifier active")
+	})
+	fm.Flags.EnableWatchmanIntegration.Disabled(nil, func() {
+		self.gui.c.Log.Info("Interval-based polling active")
+	})
 	self.gui.c.RefreshFromWorker(types.RefreshOptions{Background: true})
 }
 

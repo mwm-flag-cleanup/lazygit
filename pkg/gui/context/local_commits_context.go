@@ -10,6 +10,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/fm"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
@@ -474,7 +475,13 @@ func commitGraphSymbolSet(c *ContextCommon) graph.SymbolSet {
 	case "detailed":
 		return graph.BranchDrawingSymbols
 	case "auto":
-		if graph.TerminalDrawsBranchDrawingSymbols(c.GocuiGui().Terminal()) {
+		terminalName, terminalVersion := c.GocuiGui().Terminal()
+		rCtx := fm.NewContext(map[string]interface{}{
+			"terminalName":    terminalName,
+			"terminalVersion": terminalVersion,
+		})
+		if fm.UxFlags.CommitGraphStyle.GetValue(rCtx) == "unicode" &&
+			graph.TerminalDrawsBranchDrawingSymbols(terminalName, terminalVersion) {
 			return graph.BranchDrawingSymbols
 		}
 	}

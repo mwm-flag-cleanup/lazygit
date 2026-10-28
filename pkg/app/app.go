@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/go-errors/errors"
@@ -21,6 +22,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/fm"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
@@ -115,6 +117,18 @@ func NewApp(config config.AppConfigurer, test integrationTypes.IntegrationTest, 
 	if err != nil {
 		return app, err
 	}
+
+	fm.Init(fmt.Sprintf("%d.%d.%d", gitVersion.Major, gitVersion.Minor, gitVersion.Patch))
+
+	// Two independent FM experiments were rolled out in the same release and
+	// both only need terminal-agnostic startup context, so we resolve and log
+	// them together here rather than building a context object twice.
+	startupCtx := fm.NewContext(map[string]interface{}{"os": runtime.GOOS})
+	log.Printf(
+		"fm: watchman-integration-enabled=%v ux.CommitGraphStyle=%s",
+		fm.DynamicAPI().IsEnabled("watchman-integration-enabled", false, startupCtx),
+		fm.DynamicAPI().Value(fm.FlagName_CommitGraphStyle, "ascii", []string{"ascii", "unicode"}, startupCtx),
+	)
 
 	// If we're not in a repo, GetRepoPaths will return an error. The error is moot for us
 	// at this stage, since we'll try to init a new repo in setupRepo(), below

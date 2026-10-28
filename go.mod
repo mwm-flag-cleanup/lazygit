@@ -30,6 +30,7 @@ require (
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe
 	github.com/rivo/uniseg v0.4.7
+	github.com/rollout/rox-go/v6 v6.0.4
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/samber/lo v1.53.0
 	github.com/sanity-io/litter v1.5.8
@@ -56,6 +57,8 @@ require (
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
+	github.com/hashicorp/go-version v1.3.0 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/invopop/jsonschema v0.10.0 // indirect
 	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 // indirect
@@ -64,12 +67,15 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.34.1 // indirect
+	github.com/rollout/sse v0.0.0-20181105093643-e422b54b3b28 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/mod v0.41.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/term v0.46.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
+	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
