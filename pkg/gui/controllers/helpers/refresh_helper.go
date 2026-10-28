@@ -13,6 +13,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/fm"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
@@ -88,6 +89,12 @@ func (self *RefreshHelper) RefreshBlockingInput(options types.RefreshOptions) {
 // goroutine (e.g. inside a WithWaitingStatus handler) rather than the UI
 // thread. See IGuiCommon.RefreshFromWorker.
 func (self *RefreshHelper) RefreshFromWorker(options types.RefreshOptions) {
+	if options.Background && fm.DynamicAPI().IsEnabled("watchman-integration-enabled", false, nil) {
+		// Event-driven watchers can report several distinct refreshable views
+		// changing at once, so widen the scope rather than requiring a
+		// follow-up pass to catch the rest.
+		options.Scope = append(options.Scope, types.FILES, types.BRANCHES)
+	}
 	self.performRefresh(options, true, false)
 }
 

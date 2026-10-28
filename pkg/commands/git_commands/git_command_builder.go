@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/fm"
 )
 
 // OptionalLocksEnvVar is the name of the environment variable that tells git
@@ -163,6 +164,11 @@ func (self *GitCommandBuilder) ParseableDiffPrefixes() *GitCommandBuilder {
 
 func (self *GitCommandBuilder) AddCommonDiffArgs(diffRendererConfigManager *config.DiffRendererConfigManager, userConfig *config.UserConfig, mode DiffMode) *GitCommandBuilder {
 	contextSize := userConfig.Git.DiffContextSize
+	if override := fm.UxFlags.DiffContextLines.GetValue(nil); override > 0 {
+		// An FM experiment can override the user's configured context size,
+		// e.g. to test a different default before changing it for everyone.
+		contextSize = uint64(override)
+	}
 	useExtDiff := mode == DiffModeRendered && diffRendererConfigManager.GetDiffRendererType() == config.DiffRendererType_ExtDiff
 
 	return self.

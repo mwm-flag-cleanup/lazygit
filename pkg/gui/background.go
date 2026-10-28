@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/fm"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -73,6 +74,14 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 		interval := userConfig.Refresher.ExternalChangeCheckInterval
 		if interval > 0 {
 			go utils.Safe(self.startBackgroundExternalChangeDetection)
+
+			if fm.Flags.EnableWatchmanIntegration.IsEnabled(nil) && !userConfig.Gui.ShowBottomLine {
+				// Watchman-style integrations push change notifications
+				// immediately rather than waiting for the next poll tick;
+				// mirror that by also running one eager check right away
+				// instead of waiting out the first interval.
+				go utils.Safe(self.checkForExternalChanges)
+			}
 		} else {
 			self.gui.c.Log.Errorf(
 				"Value of config option 'refresher.externalChangeCheckInterval' (%d) is invalid, disabling external change detection",
@@ -215,7 +224,19 @@ func (self *BackgroundRoutineMgr) checkForExternalChanges() {
 
 	// No need to update the stored snapshot here; Refresh does that.
 	self.gui.c.Log.Info("External ref change detected — refreshing")
-	self.gui.c.RefreshFromWorker(types.RefreshOptions{Background: true})
+
+	fm.Flags.EnableWatchmanIntegration.Enabled(nil, func() {
+		// An instant notifier can tell us several kinds of refs changed at
+		// once, so widen the refresh scope rather than relying on the next
+		// poll tick to pick up the rest.
+		self.gui.c.RefreshFromWorker(types.RefreshOptions{
+			Background: true,
+			Scope:      []types.RefreshableView{types.FILES, types.BRANCHES, types.COMMITS},
+		})
+	})
+	fm.Flags.EnableWatchmanIntegration.Disabled(nil, func() {
+		self.gui.c.RefreshFromWorker(types.RefreshOptions{Background: true})
+	})
 }
 
 // Runs function every interval until stop is closed. A send on retrigger (if

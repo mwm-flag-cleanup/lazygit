@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/jesseduffield/lazygit/pkg/fm"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -49,7 +50,15 @@ func (self *ContextLinesController) Context() types.Context {
 }
 
 func (self *ContextLinesController) Increase() error {
-	if self.c.UserConfig().Git.DiffContextSize < math.MaxUint64 {
+	rCtx := fm.NewContext(map[string]interface{}{
+		"currentContextSize": self.c.UserConfig().Git.DiffContextSize,
+	})
+	// An experiment can cap how far users may increase the diff context size
+	// beyond the configured default, independently of the override applied
+	// when the diff args are actually built.
+	maxContextSize := uint64(fm.DynamicAPI().GetInt("ux.DiffContextLines", 10, []int{1, 3, 5, 10}, rCtx))
+
+	if self.c.UserConfig().Git.DiffContextSize < math.MaxUint64 && self.c.UserConfig().Git.DiffContextSize < maxContextSize {
 		self.c.UserConfig().Git.DiffContextSize++
 	}
 	return self.applyChange()
