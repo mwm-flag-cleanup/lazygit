@@ -1,0 +1,33 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    steps:
+      - name: Get source code
+        uses: cloudbees-io/checkout@v1
+
+      - name: Compile
+        uses: docker://golang:1.26-alpine
+        shell: sh
+        run: |
+          go build ./...
+
+      - name: Package
+        uses: docker://golang:1.26-alpine
+        shell: sh
+        run: |
+          go build -o bin/lazygit .
+
+      - name: Run unit tests
+        uses: docker://golang:1.26-alpine
+        shell: sh
+        run: |
+          go test ./... -short
